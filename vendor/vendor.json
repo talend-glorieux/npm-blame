@@ -1,0 +1,31 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "cACEkFM7kIL+NVF6jSJPY2tW4d8=",
+			"path": "github.com/gosuri/uitable",
+			"revision": "36ee7e946282a3fb1cfecd476ddc9b35d8847e42",
+			"revisionTime": "2016-04-04T20:39:58Z"
+		},
+		{
+			"checksumSHA1": "hfL7iFULaUity86NGidQt/AiYyo=",
+			"path": "github.com/gosuri/uitable/util/strutil",
+			"revision": "36ee7e946282a3fb1cfecd476ddc9b35d8847e42",
+			"revisionTime": "2016-04-04T20:39:58Z"
+		},
+		{
+			"checksumSHA1": "xUvDrGeY4HijGKl+W8WSvWl1Evs=",
+			"path": "github.com/gosuri/uitable/util/wordwrap",
+			"revision": "36ee7e946282a3fb1cfecd476ddc9b35d8847e42",
+			"revisionTime": "2016-04-04T20:39:58Z"
+		},
+		{
+			"checksumSHA1": "DdH3xAkzAWJ4B/LGYJyCeRsly2I=",
+			"path": "github.com/mattn/go-runewidth",
+			"revision": "d6bea18f789704b5f83375793155289da36a3c7f",
+			"revisionTime": "2016-03-15T04:07:12Z"
+		}
+	],
+	"rootPath": "talend.com/whiper"
+}
