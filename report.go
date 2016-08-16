@@ -1,4 +1,4 @@
-package main
+package npmblame
 
 // Report represents a npm package issue report
 type Report struct {
