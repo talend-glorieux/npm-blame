@@ -14,6 +14,8 @@ Run `npm-blame` from inside your project's node_module folder.
 * Get the [latest Golang release](https://golang.org/dl/)
 * Set up your workspace
 * Run `go get github.com/talend-glorieux/npm-blame` 
+* Go to the projects folder. `$GOPATH/src/github.com/talend-glorieux/npm-blame`
+* Run `go install ./cmd/npm-blame`
 
 ## Status
 
