@@ -1,4 +1,4 @@
-// npm-blame captures useful informations and common errors from npm node_modules
+// Package npmblame captures useful informations and common errors from npm node_modules
 package npmblame
 
 import (
@@ -12,28 +12,37 @@ import (
 	"github.com/gosuri/uitable"
 )
 
+// PackageError represents common npm packages errors
+type PackageError int
+
 const (
-	// The package contains executables
-	EXEC_ERROR = iota
-	// The package contains test files
-	TEST_ERROR
-	// The package contains benchmarks files
-	BENCH_ERROR
-	// The package contains jsx files
-	JSX_ERROR
-	// The package contains ts files
-	TS_ERROR
-	// The package contains image files
-	IMG_ERROR
-	// The package contains TravisCI files
-	TRAVIS_ERROR
-	// The package contains editorconfig, eslint or sass-lint files
-	EDITOR_LINT_ERROR
+	// ExecError marks a package containing executables
+	ExecError PackageError = iota
+	// TestError marks a package test files
+	TestError
+	// BenchError marks a package benchmark files
+	BenchError
+	// JsxError marks a package jsx files
+	JsxError
+	// TypeScriptError marks a package tsfiles
+	TypeScriptError
+	// ImageError marks a package images files
+	ImageError
+	// CIError marks a package containing continous integration files
+	CIError
+	// DotfileError marks a package lint files
+	DotfileError
 )
 
-// packages contains maps all the pacakage to there given error codes and the
-// numeber of times those occured
-type NpmPackages map[string]map[int]int
+// NpmPackage represents a npm package
+type NpmPackage struct {
+	BugsURL  string
+	Homepage string
+	Errors   map[int]int
+}
+
+// NpmPackages is a map of all the packages and there given errors
+type NpmPackages map[string]map[PackageError]int
 
 // NewNpmPackages returns a new npm package instance
 func NewNpmPackages() NpmPackages {
@@ -41,7 +50,7 @@ func NewNpmPackages() NpmPackages {
 }
 
 // ExtractPackageName returns the npm package name from a given path
-// TODO improve to handle node_modules
+// TODO improve to handle nested dependencies
 func (np NpmPackages) ExtractPackageName(path string) string {
 	dir := filepath.Dir(path)
 	module := strings.Split(dir, "/")
@@ -49,15 +58,52 @@ func (np NpmPackages) ExtractPackageName(path string) string {
 		return module[0]
 	}
 	return module[1]
+}
 
+//ExtractPackageInformations extracts the package information from its package.json
+func (np NpmPackages) ExtractPackageInformations() error {
+	return nil
 }
 
 // AppendError appends an error to a given package
-func (np NpmPackages) AppendError(pkgName string, err int) {
+func (np NpmPackages) AppendError(pkgName string, err PackageError) {
 	if len(np[pkgName]) == 0 {
-		np[pkgName] = make(map[int]int)
+		np[pkgName] = make(map[PackageError]int)
 	}
 	np[pkgName][err] = np[pkgName][err] + 1
+}
+
+func (np NpmPackages) checkTests(path string, pkg string) {
+	if strings.Contains(path, "test") ||
+		strings.Contains(path, "tests") ||
+		strings.Contains(path, ".zuul.yml") ||
+		strings.Contains(path, "coverage") ||
+		strings.Contains(path, ".coveralls.yml") {
+		np.AppendError(pkg, TestError)
+	}
+}
+
+func (np NpmPackages) checkDotFiles(path string, pkg string) {
+	if strings.Contains(path, ".editorconfig") ||
+		strings.Contains(path, ".eslintrc") ||
+		strings.Contains(path, ".sass-lint.yml") ||
+		strings.Contains(path, ".jshintrc") {
+		np.AppendError(pkg, DotfileError)
+	}
+}
+
+func (np NpmPackages) checkExecutables(info os.FileInfo, pkg string) {
+	if !info.Mode().IsDir() && (info.Mode()&0111) != 0 {
+		np.AppendError(pkg, ExecError)
+	}
+}
+
+func (np NpmPackages) checkImages(path string, pkg string) {
+	if filepath.Ext(path) == ".png" ||
+		filepath.Ext(path) == ".jpg" ||
+		filepath.Ext(path) == ".ico" {
+		np.AppendError(pkg, ImageError)
+	}
 }
 
 // Blame reports on error for a given npm package
@@ -71,42 +117,31 @@ func (np NpmPackages) Blame(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 
-	if !info.Mode().IsDir() && (info.Mode()&0111) != 0 {
-		np.AppendError(pkg, EXEC_ERROR)
-	}
-
-	if strings.Contains(path, "test") || strings.Contains(path, "tests") || strings.Contains(path, ".zuul.yml") || strings.Contains(path, "coverage") || strings.Contains(path, ".coveralls.yml") {
-		np.AppendError(pkg, TEST_ERROR)
-	}
+	np.checkExecutables(info, pkg)
+	np.checkTests(path, pkg)
+	np.checkDotFiles(path, pkg)
+	np.checkImages(path, pkg)
 
 	if strings.Contains(path, "bench") {
-		np.AppendError(pkg, BENCH_ERROR)
+		np.AppendError(pkg, BenchError)
 	}
 
 	if filepath.Ext(path) == ".jsx" {
-		np.AppendError(pkg, JSX_ERROR)
+		np.AppendError(pkg, JsxError)
 	}
 
 	if filepath.Ext(path) == ".ts" {
-		np.AppendError(pkg, TS_ERROR)
-	}
-
-	if filepath.Ext(path) == ".png" || filepath.Ext(path) == ".jpg" || filepath.Ext(path) == ".ico" {
-		np.AppendError(pkg, IMG_ERROR)
+		np.AppendError(pkg, TypeScriptError)
 	}
 
 	if strings.Contains(path, ".travis.yml") {
-		np.AppendError(pkg, TRAVIS_ERROR)
-	}
-
-	if strings.Contains(path, ".editorconfig") || strings.Contains(path, ".eslintrc") || strings.Contains(path, ".sass-lint.yml") || strings.Contains(path, ".jshintrc") {
-		np.AppendError(pkg, EDITOR_LINT_ERROR)
+		np.AppendError(pkg, CIError)
 	}
 
 	return nil
 }
 
-// totalErrors return the total amount of errors
+// TotalErrors return the total amount of errors
 func (np NpmPackages) TotalErrors(pkgName string) int {
 	totalErrors := 0
 	for _, err := range np[pkgName] {
@@ -115,7 +150,7 @@ func (np NpmPackages) TotalErrors(pkgName string) int {
 	return totalErrors
 }
 
-// DisplayErrors pretty prints the npm packages error report
+// String returns the printalbe representation of the NpmPackages
 func (np NpmPackages) String() string {
 	buf := &bytes.Buffer{}
 	var totalErr int
@@ -136,10 +171,10 @@ func (np NpmPackages) String() string {
 
 		if len(errors) > 0 {
 			pkgErr := np.TotalErrors(name)
-			totalErr += 1
-			table.AddRow(name, pkgErr, errors[EXEC_ERROR], errors[TEST_ERROR],
-				errors[BENCH_ERROR], errors[JSX_ERROR], errors[TS_ERROR],
-				errors[IMG_ERROR], errors[TRAVIS_ERROR], errors[EDITOR_LINT_ERROR])
+			totalErr++
+			table.AddRow(name, pkgErr, errors[ExecError], errors[TestError],
+				errors[BenchError], errors[JsxError], errors[TypeScriptError],
+				errors[ImageError], errors[CIError], errors[DotfileError])
 		}
 	}
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"talend.com/npmblame"
+	npmblame "github.com/talend-glorieux/npm-blame"
 )
 
 func main() {
