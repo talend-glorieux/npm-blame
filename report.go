@@ -31,6 +31,7 @@ func NewReport(owner string, repo string, Errors []int) *Report {
 	}
 }
 
+// getDefaultClient returns a default GitHub client
 func getDefaultClient(authToken string) *github.Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: authToken},
