@@ -1,6 +1,7 @@
 package npmblame
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -39,8 +40,7 @@ func TestExtractPackageName(t *testing.T) {
 	})
 
 	t.Run("nested package", func(t *testing.T) {
-		t.Skip("skipping test while not implemented")
-		if p := np.ExtractPackageName("/test/pkg/nested/path"); p != "nested" {
+		if p := np.ExtractPackageName("/test/node_modules/nested/path"); p != "nested" {
 			t.Error("Wrong package name", p)
 		}
 	})
@@ -51,6 +51,13 @@ func BenchmarkExtractPackageName(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		np.ExtractPackageName("test")
+	}
+}
+
+func TestExtractPackageInformation(t *testing.T) {
+	np := NewNpmPackages()
+	if err := np.ExtractPackageInformations(); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -90,12 +97,6 @@ func createNodeModulesFolder() (fs afero.Fs, err error) {
 	// BenchError
 	fs.Mkdir("/pkg/bench", 0600)
 
-	// JsxError
-	fs.Create("/pkg/index.jsx")
-
-	// TypeScriptError
-	fs.Create("/pkg/index.ts")
-
 	// ImageError
 	fs.Create("/pkg/favicon.ico")
 	fs.Create("/pkg/icon.png")
@@ -118,6 +119,13 @@ func TestBlame(t *testing.T) {
 		t.Error("FileSystem error", err)
 	}
 	np := NewNpmPackages()
+
+	t.Run("Walk Error", func(t *testing.T) {
+		if err := np.Blame("", nil, fmt.Errorf("")); err == nil {
+			t.Error("Blame should stop in case of errors")
+		}
+	})
+
 	if err := afero.Walk(fs, "/", np.Blame); err != nil {
 		t.Error("Walk Error", err)
 	}
@@ -149,18 +157,6 @@ func TestBlame(t *testing.T) {
 	t.Run("BenchError", func(t *testing.T) {
 		if np["pkg"][BenchError] == 0 {
 			t.Error("No BenchError", np)
-		}
-	})
-
-	t.Run("JsxError", func(t *testing.T) {
-		if np["pkg"][JsxError] == 0 {
-			t.Error("No JsxError", np)
-		}
-	})
-
-	t.Run("TypeScriptError", func(t *testing.T) {
-		if np["pkg"][TypeScriptError] == 0 {
-			t.Error("No TypeScriptError", np)
 		}
 	})
 

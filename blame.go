@@ -22,10 +22,6 @@ const (
 	TestError
 	// BenchError marks a package benchmark files
 	BenchError
-	// JsxError marks a package jsx files
-	JsxError
-	// TypeScriptError marks a package tsfiles
-	TypeScriptError
 	// ImageError marks a package images files
 	ImageError
 	// CIError marks a package containing continous integration files
@@ -53,7 +49,16 @@ func NewNpmPackages() NpmPackages {
 // TODO improve to handle nested dependencies
 func (np NpmPackages) ExtractPackageName(path string) string {
 	dir := filepath.Dir(path)
-	module := strings.Split(dir, "/")
+	//fmt.Println("HAS_NODEMODULES", strings.Contains(dir, "node_modules"), strings.LastIndex(dir, "node_modules"))
+	subPkgIndex := strings.LastIndex(dir, "node_modules")
+	var module []string
+	if subPkgIndex != -1 {
+		module = strings.Split(dir[subPkgIndex:], "/")
+		if len(module) > 1 {
+			return module[1]
+		}
+	}
+	module = strings.Split(dir, "/")
 	if len(module[0]) > 0 {
 		return module[0]
 	}
@@ -116,6 +121,10 @@ func (np NpmPackages) Blame(path string, info os.FileInfo, err error) error {
 	if pkg == "" || pkg == ".bin" {
 		return nil
 	}
+	if np[pkg] == nil {
+
+		np[pkg] = make(map[PackageError]int)
+	}
 
 	np.checkExecutables(info, pkg)
 	np.checkTests(path, pkg)
@@ -124,14 +133,6 @@ func (np NpmPackages) Blame(path string, info os.FileInfo, err error) error {
 
 	if strings.Contains(path, "bench") {
 		np.AppendError(pkg, BenchError)
-	}
-
-	if filepath.Ext(path) == ".jsx" {
-		np.AppendError(pkg, JsxError)
-	}
-
-	if filepath.Ext(path) == ".ts" {
-		np.AppendError(pkg, TypeScriptError)
 	}
 
 	if strings.Contains(path, ".travis.yml") {
@@ -165,7 +166,7 @@ func (np NpmPackages) String() string {
 	table.MaxColWidth = 50
 
 	table.AddRow("PACKAGE", "ERRORS", "EXECUTABLE FILE", "TESTS", "BENCH",
-		"HAS_JSX", "HAS_TS", "IMAGES", "TRAVIS_FILES", "EDITOR_LINT_FILES")
+		"IMAGES", "TRAVIS_FILES", "EDITOR_LINT_FILES")
 	for _, name := range keys {
 		errors := np[name]
 
@@ -173,8 +174,8 @@ func (np NpmPackages) String() string {
 			pkgErr := np.TotalErrors(name)
 			totalErr++
 			table.AddRow(name, pkgErr, errors[ExecError], errors[TestError],
-				errors[BenchError], errors[JsxError], errors[TypeScriptError],
-				errors[ImageError], errors[CIError], errors[DotfileError])
+				errors[BenchError], errors[ImageError], errors[CIError],
+				errors[DotfileError])
 		}
 	}
 

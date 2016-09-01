@@ -31,11 +31,21 @@ func TestNewReport(t *testing.T) {
 	}
 }
 
+func TestDefaultClient(t *testing.T) {
+	gc := DefaultClient("test")
+	if gc.UserAgent != "npm-blame" {
+		t.Errorf("Wrong UserAgent. Expected npm-blame got %s.", gc.UserAgent)
+	}
+	if gc == nil {
+		t.Error("Should return a GitHub client")
+	}
+}
+
 func TestSend(t *testing.T) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	client := github.NewClient(nil)
 	url, _ := url.Parse(server.URL)
+	client := github.NewClient(nil)
 	client.BaseURL = url
 
 	mux.HandleFunc("/repos/npm-blame/test/issues", func(w http.ResponseWriter, r *http.Request) {
@@ -56,12 +66,22 @@ func TestSend(t *testing.T) {
 	})
 
 	r := NewReport("npm-blame", "test", errors)
-	issue, err := r.Send(client, "testToken")
-	if err != nil {
-		t.Error(err)
-	}
-	want := &github.Issue{Number: Int(1)}
-	if !reflect.DeepEqual(issue, want) {
-		t.Errorf("Issues.Create returned %+v, want %+v", issue, want)
-	}
+
+	t.Run("Default client", func(t *testing.T) {
+		_, err := r.Send(nil)
+		if err == nil {
+			t.Error("Send should require a client")
+		}
+	})
+
+	t.Run("Test Client", func(t *testing.T) {
+		issue, err := r.Send(client)
+		if err != nil {
+			t.Error(err)
+		}
+		want := &github.Issue{Number: Int(1)}
+		if !reflect.DeepEqual(issue, want) {
+			t.Errorf("Issues.Create returned %+v, want %+v", issue, want)
+		}
+	})
 }

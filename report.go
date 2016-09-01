@@ -1,6 +1,8 @@
 package npmblame
 
 import (
+	"fmt"
+
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
@@ -31,20 +33,21 @@ func NewReport(owner string, repo string, Errors []int) *Report {
 	}
 }
 
-// getDefaultClient returns a default GitHub client
-func getDefaultClient(authToken string) *github.Client {
+// DefaultClient returns a default GitHub client
+func DefaultClient(authToken string) *github.Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: authToken},
 	)
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
+	client.UserAgent = "npm-blame"
 	return client
 }
 
 // Send sends a report to the appropriate npm package issue tracker
-func (r *Report) Send(client *github.Client, authToken string) (issue *github.Issue, err error) {
+func (r *Report) Send(client *github.Client) (issue *github.Issue, err error) {
 	if client == nil {
-		client = getDefaultClient(authToken)
+		return nil, fmt.Errorf("No client passed.")
 	}
 
 	issue, _, err = client.Issues.Create(r.Owner, r.Repository, &github.IssueRequest{

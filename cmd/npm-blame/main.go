@@ -36,7 +36,7 @@ func main() {
 			fmt.Println("Reporting...")
 			// TODO: Generate true report per packages
 			report := npmblame.NewReport("talend-glorieux", "npm-blame", []int{42})
-			issue, err := report.Send(nil, *token)
+			issue, err := report.Send(npmblame.DefaultClient(*token))
 			if err != nil {
 				fmt.Println("ERROR", err)
 				os.Exit(-1)
