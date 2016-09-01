@@ -1,5 +1,7 @@
 # npm-blame
 
+[![Build Status](https://travis-ci.org/talend-glorieux/npm-blame.svg?branch=master)](https://travis-ci.org/talend-glorieux/npm-blame)
+
 Reports on npm packages common errors and useless files.
 
 ## Install
