@@ -1,6 +1,6 @@
 # npm-blame
 
-[![Build Status](https://travis-ci.org/talend-glorieux/npm-blame.svg?branch=master)](https://travis-ci.org/talend-glorieux/npm-blame) [![Coverage Status](https://coveralls.io/repos/github/talend-glorieux/npm-blame/badge.svg?branch=chore%2Fadd-coveralls)](https://coveralls.io/github/talend-glorieux/npm-blame?branch=chore%2Fadd-coveralls)
+[![GoDoc](https://godoc.org/github.com/talend-glorieux/npm-blame?status.svg)](https://godoc.org/github.com/talend-glorieux/npm-blame) [![Build Status](https://travis-ci.org/talend-glorieux/npm-blame.svg?branch=master)](https://travis-ci.org/talend-glorieux/npm-blame) [![Coverage Status](https://coveralls.io/repos/github/talend-glorieux/npm-blame/badge.svg?branch=chore%2Fadd-coveralls)](https://coveralls.io/github/talend-glorieux/npm-blame?branch=chore%2Fadd-coveralls)
 
 Reports on npm packages common errors and useless files.
 
