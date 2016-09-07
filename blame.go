@@ -24,7 +24,7 @@ const (
 	BenchError
 	// ImageError marks a package images files
 	ImageError
-	// CIError marks a package containing continous integration files
+	// CIError marks a package containing continuous integration files
 	CIError
 	// DotfileError marks a package lint files
 	DotfileError
